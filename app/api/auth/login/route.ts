@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSessionCookieValue, SESSION_COOKIE_NAME, SESSION_COOKIE_MAX_AGE } from "@/lib/auth";
+import { createSessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/auth";
 
 export async function POST(req: Request) {
   const correctPassword = process.env.DASHBOARD_PASSWORD;
@@ -17,12 +17,14 @@ export async function POST(req: Request) {
 
   const cookieValue = await createSessionCookieValue(secret);
   const res = NextResponse.json({ ok: true });
+  // No maxAge/expires: this is a browser session cookie. It's gone as soon
+  // as the browser closes, so the password is required again on every new
+  // visit - not just once ever.
   res.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_COOKIE_MAX_AGE,
   });
   return res;
 }

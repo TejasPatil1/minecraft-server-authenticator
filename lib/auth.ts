@@ -2,7 +2,11 @@
 // the Edge middleware runtime and in Node API routes.
 
 export const SESSION_COOKIE_NAME = "mc_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+// Server-side safety-net expiry only (in case a cookie value ever leaks).
+// The cookie itself is NOT persisted in the browser (see login route) - it's
+// a session cookie, so closing the browser already requires re-entering the
+// password on the next visit, regardless of this value.
+const SESSION_SAFETY_NET_SECONDS = 60 * 60 * 12; // 12 hours
 
 const encoder = new TextEncoder();
 
@@ -36,7 +40,7 @@ function constantTimeEqual(a: string, b: string): boolean {
 }
 
 export async function createSessionCookieValue(secret: string): Promise<string> {
-  const expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
+  const expiresAt = Date.now() + SESSION_SAFETY_NET_SECONDS * 1000;
   const payload = `${expiresAt}`;
   const sig = await sign(payload, secret);
   return `${payload}.${sig}`;
@@ -54,4 +58,3 @@ export async function verifySessionCookieValue(
   return constantTimeEqual(expected, sig);
 }
 
-export const SESSION_COOKIE_MAX_AGE = SESSION_MAX_AGE_SECONDS;
