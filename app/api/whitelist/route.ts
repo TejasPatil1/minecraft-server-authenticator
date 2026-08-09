@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { addToWhitelist, listWhitelist } from "@/lib/rcon";
+import { addToWhitelist, listWhitelist } from "@/lib/whitelist";
 
 export async function GET() {
   try {
@@ -19,8 +19,8 @@ export async function POST(req: Request) {
     if (typeof username !== "string" || username.trim().length === 0) {
       return NextResponse.json({ error: "Username required" }, { status: 400 });
     }
-    const result = await addToWhitelist(username.trim());
-    return NextResponse.json({ ok: true, result });
+    await addToWhitelist(username.trim());
+    return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Failed to add to whitelist" },
